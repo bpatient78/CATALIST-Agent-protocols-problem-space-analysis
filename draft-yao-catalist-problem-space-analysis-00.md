@@ -109,11 +109,13 @@ While the core session model is relatively robust, open Internet deployments imp
 
 ** Context Propagation Rules: While contextId supports cross-task context, A2A protocol does not standardize how context is inherited (e.g., which fields are carried over to new tasks), truncated (e.g., handling long message histories), or merged (e.g., combining contexts from multiple agents). This leads to inconsistent behavior across implementations.
 
-** Session Recovery and Reconnection: The protocol lacks detailed mechanisms to recover sessions after network disconnections. Clients cannot resume streaming responses, confirm the last received message, or continue partial task execution.
+** Session Recovery and Reconnection: The protocol lacks detailed mechanisms to recover sessions after network disconnections. Clients cannot resume streaming responses, confirm the last received message, or continue partial task execution. Current designs assume best‑effort reconnection semantics and do not specify maximum recovery windows or reconnection deadlines. This gap is particularly critical for long‑running or mission-critical agent workflows that rely on uninterrupted session continuity.
 
 ** User-Session Binding: Protocols only support tenant isolation but lack standardized user identity fields. This prevents user-level session isolation, cross-device session synchronization, and user-specific session management.
 
 ** Extended State Semantics: The state machine lacks semantics for long-running interactions, such as SUSPENDED (temporarily paused), or PENDING_EXTERNAL (e.g., waiting for a response from an external system). This forces long-running tasks to remain in WORKING state, leading to ambiguous semantics.
+
+** Session level constrains: While A2A allows message metadata to provid a deadline, it does not have any scheduling gurantee or univarsal deadline. Session‑level Quality‑of‑Service (QoS) attributes, such as maximum task‑completion deadlines, bounded execution times, or task priority levels attached to session operations left unclear or to the application implementaiton.
 
 
 # Problem Space Issue 3: Fine-Grained Authorization {#fine-grained-authorization}
@@ -158,6 +160,11 @@ MCP is desinged primarity for text based JSON-RPC communication.
 While the core multi-modal framework is functional, open Internet deployments require additional support for large data, dynamic adaptation, and interactive use cases:
 
 ** Large File and Chunked Transmission: There is no support for chunked upload/download of large multi-modal data (e.g., videos, high-resolution images). The raw field uses base64 encoding for binary data, which is inefficient for large files, and there is no mechanism for hash verification.
+** latency bounded transmission: The protocols lack mechanism for predictable/controlled ordering and loss handling of task for critical agent message. As a result, timing‑sensitive agent behaviors (e.g., cooperative planning loops ) cannot rely on predictable inter‑agent message timing.
+
+** Ordering, and loss‑handling of messages : MCP and A2A both lack mechanisms for conveying message ordering requirements across multi‑modal data transmission. Similarly, no mechanisms exists to distinguish between messages that e.g. must be reliably delivered, those that may be dropped or superseded.
+
+** Message importance/scheduling support : While MCP has non-interperable way to annotate priority as a tool argument, both MCP and A2A left prioritization and scheduling of message and task completion to the host of the application or agent orchastrator, not in the protocol. This would be a potential feature required in cross domain functioning of agents.
 
 
 # Security Considerations {#security-considerations}
@@ -178,4 +185,5 @@ TBD.
 # Acknowledgements {#acknowledgements}
 
 --- back
+
 
